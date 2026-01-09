@@ -2,9 +2,8 @@ version: '3.8'
 
 services:
   # === Сервис Nginx (Веб-сервер) ===
-  # Обязательный компонент.
   nginx:
-    image: nginx:latest
+    image: nginx:alpine
     container_name: nginx-container
     ports:
       - "80:80"   # HTTP
@@ -15,6 +14,11 @@ services:
       - ./nginx/conf.d:/etc/nginx/conf.d
       - ./nginx/snippets:/etc/nginx/snippets
       - ./nginx/certs:/etc/nginx/certs
+      
+      # === ЛОГИ NGINX ===
+      # Теперь логи сохраняются в папку logs/nginx на вашем ПК
+      - ./logs/nginx:/var/log/nginx
+    
     # Если вы используете ТОЛЬКО Nginx (без PHP), закомментируйте секцию depends_on
     depends_on:
       - php
@@ -22,12 +26,17 @@ services:
       - app_network
 
   # === Сервис PHP (Обработчик кода) ===
-  # Если вам нужен только статический HTML, этот сервис можно полностью закомментировать или удалить.
   php:
     image: php:8.2-fpm-alpine
     container_name: php-fpm-container
     volumes:
       - ./www:/var/www/html
+      
+      # === ЛОГИ PHP ===
+      # 1. Пробрасываем папку для логов
+      - ./logs/php:/var/log/php
+      # 2. Подключаем настройку, которая заставляет PHP писать в файл
+      - ./php/logging.conf:/usr/local/etc/php-fpm.d/zz-logging.conf
     networks:
       - app_network
 

@@ -1,66 +1,64 @@
-# Nginx + PHP-FPM + SSL (Docker Compose)
+# Nginx + PHP-FPM + SSL (Docker Compose - Alpine Edition)
 
-Этот проект представляет собой модульную заготовку для веб-разработки. Вы можете использовать его как:
-1. Просто Nginx для статических файлов (HTML/CSS/JS).
-2. Nginx + PHP.
-3. Nginx + SSL (HTTPS).
-4. Полный стек: Nginx + PHP + SSL.
+Этот проект — легкая и модульная заготовка для веб-сервера на базе **Alpine Linux**.
 
 ## Структура папок
 
 *   `www/` — Ваши файлы сайта (index.php, index.html).
+*   `logs/` — **Здесь появляются логи сервера:**
+    *   `logs/nginx/access.log` — Кто заходил на сайт.
+    *   `logs/nginx/error.log` — Ошибки веб-сервера.
+    *   `logs/php/php-error.log` — Ошибки PHP скриптов.
 *   `nginx/conf.d/default.conf` — Главный файл конфигурации сайта.
 *   `nginx/certs/` — Сюда нужно положить SSL сертификаты.
-*   `nginx/snippets/` — Модули конфигурации (PHP, SSL), которые подключаются в главном конфиге.
+*   `nginx/snippets/` — Модули конфигурации (PHP, SSL).
 
 ---
 
-## Инструкция: Сценарии использования
+## Сценарии использования
 
-### Сценарий 1: Только статика (HTML) по HTTP
-*Используется по умолчанию.*
-1. Положите ваши `.html` файлы в папку `www/`.
-2. Запустите: `docker-compose up -d`.
-3. Сайт доступен по адресу `http://localhost`.
+1.  **Статика (HTTP):** Работает из коробки.
+2.  **PHP:** Раскомментируйте `include` в `nginx/conf.d/default.conf`.
+3.  **SSL (HTTPS):** Сгенерируйте сертификаты и раскомментируйте блок `server` на порту 443.
 
-### Сценарий 2: Добавление PHP (без SSL)
-1. Откройте `nginx/conf.d/default.conf`.
-2. В блоке `server { listen 80; ... }`:
-   * Закомментируйте старый `location /`.
-   * Раскомментируйте блок `[ВАРИАНТ 2] Включение PHP`.
-   * Раскомментируйте строку `include /etc/nginx/snippets/php_fastcgi.conf;`.
-3. Перезапустите Nginx: `docker-compose restart nginx`.
+---
 
-### Сценарий 3: Включение SSL (HTTPS)
-Для работы SSL нужны сертификаты.
+## Работа с SSL сертификатами
 
-**1. Генерация самоподписанного сертификата**
-Выполните эту команду в терминале (PowerShell или CMD) в корне проекта:
+Для работы HTTPS (порт 443) требуются два файла в папке `nginx/certs/`:
+- `selfsigned.crt` (Публичный сертификат)
+- `selfsigned.key` (Приватный ключ)
+
+### Как сгенерировать сертификаты (одной командой)
+
+Запустите эту команду в терминале (PowerShell/CMD) в корне проекта:
 
 ```bash
-docker run --rm -v %cd%/nginx/certs:/certs alpine/openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout /certs/selfsigned.key -out /certs/selfsigned.crt -subj "/C=RU/ST=Moscow/L=Moscow/O=Localhost/CN=localhost"
+docker run --rm -v %cd%/nginx/certs:/certs alpine/openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout /certs/selfsigned.key -out /certs/selfsigned.crt -subj "/C=RU/ST=Moscow/L=Moscow/O=Development/CN=localhost"
 ```
-*(Для Linux/Mac замените `%cd%` на `$PWD`)*.
-Это создаст файлы `selfsigned.crt` и `selfsigned.key` в папке `nginx/certs`.
-
-**2. Настройка конфига**
-1. Откройте `nginx/conf.d/default.conf`.
-2. Раскомментируйте ВЕСЬ нижний блок `server { listen 443 ssl; ... }`.
-3. (Опционально) Раскомментируйте редирект в верхнем блоке `[ВАРИАНТ 3]`.
-4. Перезапустите: `docker-compose restart nginx`.
-
-### Сценарий 4: Отключение PHP (для экономии ресурсов)
-Если вам нужен только статический сервер:
-1. Откройте `docker-compose.yml`.
-2. Закомментируйте весь сервис `php`.
-3. В сервисе `nginx` закомментируйте секцию `depends_on`.
-4. Убедитесь, что в `nginx/conf.d/default.conf` **НЕ** подключен файл `php_fastcgi.conf`.
 
 ---
 
-## Полезные команды
+## Безопасность и Root права
 
-*   Запустить проект: `docker-compose up -d`
-*   Остановить проект: `docker-compose down`
-*   Посмотреть логи Nginx: `docker-compose logs -f nginx`
-*   Посмотреть логи PHP: `docker-compose logs -f php`
+Вы можете заметить, что процессы в контейнере запускаются от имени `root`. Это нормально и безопасно:
+
+1.  **Nginx:** Главный процесс стартует как `root`, чтобы иметь право открыть привилегированные порты (80 и 443). После старта он сразу создает рабочие процессы ("workers") от имени обычного пользователя `nginx`.
+2.  **PHP:** Аналогично, менеджер процессов запускается как root, но сами скрипты выполняются от пользователя `www-data`.
+
+---
+
+## Запуск
+
+1.  **Запуск всех сервисов:**
+    ```bash
+    docker-compose up -d
+    ```
+
+2.  **Перезапуск для применения настроек:**
+    ```bash
+    docker-compose restart
+    ```
+
+## Примечание по логам
+Теперь логи пишутся в файлы в папке `logs/` на вашем компьютере. Команда `docker logs` может показывать меньше информации, так как поток перенаправлен в файлы.
