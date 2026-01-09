@@ -31,11 +31,26 @@
 
 ### Как сгенерировать сертификаты (одной командой)
 
-Запустите эту команду в терминале (PowerShell/CMD) в корне проекта:
-
+**Для командной строки (CMD):**
 ```bash
 docker run --rm -v %cd%/nginx/certs:/certs alpine/openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout /certs/selfsigned.key -out /certs/selfsigned.crt -subj "/C=RU/ST=Moscow/L=Moscow/O=Development/CN=localhost"
 ```
+
+**Для PowerShell:**
+```powershell
+docker run --rm -v ${PWD}/nginx/certs:/certs alpine/openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout /certs/selfsigned.key -out /certs/selfsigned.crt -subj "/C=RU/ST=Moscow/L=Moscow/O=Development/CN=localhost"
+```
+
+**Разбор параметров:**
+*   `-newkey rsa:2048` — создает новый приватный ключ RSA длиной 2048 бит.
+*   `-keyout` — путь, по которому будет сохранен приватный ключ.
+*   `-out` — путь для сохранения самого сертификата.
+*   `-subj` — задает данные владельца сертификата в одну строку (чтобы не отвечать на вопросы интерактивно):
+    *   `/C=RU` — Страна (Country).
+    *   `/ST=Moscow` — Регион/Область (State).
+    *   `/L=Moscow` — Город (Locality).
+    *   `/O=Development` — Название организации (Organization).
+    *   `/CN=localhost` — Доменное имя (Common Name), для которого выпускается сертификат.
 
 ---
 
