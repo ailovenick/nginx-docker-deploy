@@ -51,14 +51,10 @@
 
 ### Как сгенерировать сертификаты (одной командой)
 
-**Для командной строки (CMD):**
-```bash
-docker run --rm -v %cd%/nginx/certs:/certs alpine/openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout /certs/selfsigned.key -out /certs/selfsigned.crt -subj "/C=RU/ST=Moscow/L=Moscow/O=Development/CN=localhost"
-```
+Выполните эту команду, находясь в корневой папке проекта:
 
-**Для PowerShell:**
-```powershell
-docker run --rm -v ${PWD}/nginx/certs:/certs alpine/openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout /certs/selfsigned.key -out /certs/selfsigned.crt -subj "/C=RU/ST=Moscow/L=Moscow/O=Development/CN=localhost"
+```bash
+docker run --rm -v ./nginx/certs:/certs alpine/openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout /certs/selfsigned.key -out /certs/selfsigned.crt -subj "/C=DE/ST=Berlin/L=Berlin/O=MyCompany/CN=localhost"
 ```
 
 **Разбор параметров:**
@@ -66,10 +62,10 @@ docker run --rm -v ${PWD}/nginx/certs:/certs alpine/openssl req -x509 -nodes -da
 *   `-keyout` — путь, по которому будет сохранен приватный ключ.
 *   `-out` — путь для сохранения самого сертификата.
 *   `-subj` — задает данные владельца сертификата в одну строку (чтобы не отвечать на вопросы интерактивно):
-    *   `/C=RU` — Страна (Country).
-    *   `/ST=Moscow` — Регион/Область (State).
-    *   `/L=Moscow` — Город (Locality).
-    *   `/O=Development` — Название организации (Organization).
+    *   `/C=DE` — Страна (Country).
+    *   `/ST=Berlin` — Регион/Область (State).
+    *   `/L=Berlin` — Город (Locality).
+    *   `/O=MyCompany` — Название организации (Organization).
     *   `/CN=localhost` — Доменное имя (Common Name), для которого выпускается сертификат.
 
 ---
